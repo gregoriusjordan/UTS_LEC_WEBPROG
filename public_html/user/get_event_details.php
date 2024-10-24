@@ -12,7 +12,7 @@ if (isset($_GET['event_id'])) {
     if ($event) {
         echo implode('|', [
             $event['title'],
-            $event['image'],  
+            $event['banner'],  
             $event['description'],
             $event['event_date'],
             $event['event_time'],

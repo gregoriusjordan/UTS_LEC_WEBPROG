@@ -14,7 +14,6 @@ $stmt = $pdo->prepare("SELECT name, email FROM users WHERE id = :id");
 $stmt->execute(['id' => $user_id]);
 $user = $stmt->fetch();
 
-// Fetch registered events
 $stmt = $pdo->prepare("
     SELECT e.event_id, e.title, e.event_date, e.event_time, e.location, e.banner
     FROM registrations er 
