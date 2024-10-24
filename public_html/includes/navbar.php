@@ -1,4 +1,4 @@
-<span?php
+<?php
     require '../includes/db_connection.php' ;
 
     $currentPage=basename($_SERVER['PHP_SELF'], ".php" );
