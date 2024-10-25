@@ -2,11 +2,6 @@
 session_start();
 require '../includes/db_connection.php';
 
-if ($_SESSION['role'] != 'user') {
-    header("Location: ../index.php");
-    exit;
-}
-
 $user_id = $_SESSION['user_id'];
 
 $stmt = $pdo->prepare("SELECT name, email FROM users WHERE id = :id");
@@ -68,26 +63,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("UPDATE users SET name = :name, email = :email WHERE id = :id");
         $stmt->execute(['name' => $name, 'email' => $email, 'id' => $user_id]);
     
-        
-        $_SESSION['user']['name'] = $name;
-        $_SESSION['user']['email'] = $email;
-    
         if (!empty($password)) {
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
             $stmt = $pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
             $stmt->execute(['password' => $hashed_password, 'id' => $user_id]);
         }
     
-        if (!empty($profile_picture['name'])) {
-            $stmt = $pdo->prepare("UPDATE users SET profile_picture = :profile_picture WHERE id = :id");
-            $stmt->execute(['profile_picture' => basename($profile_picture['name']), 'id' => $user_id]);
-         
-            $_SESSION['user']['profile_picture'] = basename($profile_picture['name']);
-        }
-    
         header("Location: view_profile.php");
         exit;
     }
+
+    if (count($errors) === 0) {
+    $stmt = $pdo->prepare("UPDATE users SET name = :name, email = :email WHERE id = :id");
+    $stmt->execute(['name' => $name, 'email' => $email, 'id' => $user_id]);
+
+    
+    $_SESSION['user']['name'] = $name;
+    $_SESSION['user']['email'] = $email;
+
+    if (!empty($password)) {
+        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+        $stmt = $pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
+        $stmt->execute(['password' => $hashed_password, 'id' => $user_id]);
+    }
+
+    if (!empty($profile_picture['name'])) {
+        $stmt = $pdo->prepare("UPDATE users SET profile_picture = :profile_picture WHERE id = :id");
+        $stmt->execute(['profile_picture' => basename($profile_picture['name']), 'id' => $user_id]);
+     
+        $_SESSION['user']['profile_picture'] = basename($profile_picture['name']);
+    }
+
+    header("Location: view_profile.php");
+    exit;
+}
+
+    
 }
 ?>
 
@@ -109,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         :root {
-            --primary-purple: #8B5CF6;
+            --primary-purple: #8B63DA;
             --light-purple: #EDE9FE;
             --white: #FFFFFF;
             --gray-100: #F3F4F6;
@@ -236,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-save:hover {
-            background-color: #7C3AED;
+            background-color: #7A53C7;
         }
 
         .btn-cancel {

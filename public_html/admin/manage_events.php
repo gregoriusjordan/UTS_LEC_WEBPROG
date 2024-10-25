@@ -3,113 +3,166 @@ session_start();
 require '../includes/db_connection.php';
 
 if ($_SESSION['role'] != 'admin') {
-    header("Location: ../index.php");
-    exit;
-}
+    header("Location: ../index.php"); 
+    exit; 
+} 
 
 $stmt = $pdo->query("SELECT e.*, (SELECT COUNT(*) FROM registrations r WHERE r.event_id = e.event_id) AS total_registrations FROM events e");
 $events = $stmt->fetchAll();
 ?>
 
 <?php include '../includes/navbar.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events - Eventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/f62928dd38.js" crossorigin="anonymous"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bluey: '#3D41C1',
+                        lilac: '#8B63DA',
+                        pinky: '#CB98ED',
+                        dlilac: '#7A53C7'
+                    },
+                    fontFamily: {
+                        'mont': 'Montserrat',
+                        'inter': 'Inter'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': {
+                                opacity: '0'
+                            },
+                            '100%': {
+                                opacity: '1'
+                            }
+                        },
+                        slideIn: {
+                            '0%': {
+                                transform: 'translateY(100px)',
+                                opacity: '0'
+                            },
+                            '100%': {
+                                transform: 'translateY(0)',
+                                opacity: '1'
+                            }
+                        }
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 1s ease-out',
+                        slideIn: 'slideIn 0.4s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .title::first-letter {
+            text-transform: uppercase;
+        }
+    </style>
+</head>
 
-<div class="container mx-auto p-6 mt-10 bg-white rounded-md">
-    <h1 class="text-2xl font-bold text-center mb-6 text-indigo-600">Manage Events</h1>
+<body class="bg-[#F2ECF7]">
 
-    <div class="flex flex-wrap justify-center gap-4">
-        <?php foreach ($events as $event): ?>
-            <div class="event-banner border border-gray-300 rounded-lg shadow-md p-4 w-48 flex flex-col items-center">
-                <img src="../assets/images/<?= $event['banner'] ?>?v=<?= time() ?>" alt="<?= $event['title'] ?> Banner" class="w-full h-32 object-cover rounded-lg mb-2">
-                <h2 class="font-semibold text-lg text-center"><?= htmlspecialchars($event['title']) ?></h2>
-                <p class="text-sm text-gray-600"><?= htmlspecialchars($event['total_registrations']) ?> registrants</p>
-                <button onclick="showDetails(<?= $event['event_id'] ?>)" class="mt-2 bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200">
-                    Details
-                </button>
-            </div>
-        <?php endforeach; ?>
-    </div>
-</div>
+    <h1 class="text-[38px] font-bold text-center my-8 text-lilac font-inter font-bold">Manage Events</h1>
 
-<div id="event-popup" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75 hidden">
-    <div class="popup-content bg-white p-5 rounded-lg items-center shadow-lg max-w-sm w-full text-center">
-        <img id="popup-image" src="" alt="Event Image" class="items-center popup-image h-auto rounded-lg mb-4">
-        <h3 id="popup-title" class="text-xl font-semibold mb-2"></h3>
-        <p id="popup-description" class="mb-2"></p>
-        <p id="popup-date-time" class="mb-2"></p>
-        <p id="popup-location" class="mb-2"></p>
-        <p id="popup-registrations" class="mb-4"></p>
-
-        <div class="popup-buttons flex flex-col space-y-2">
-            <button onclick="editEvent()" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">Edit Event</button>
-            <button onclick="confirmDeleteEvent()" class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">Delete Event</button>
-            <button class="close-btn bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-gray-500 transition duration-200" onclick="closePopup()">Close</button>
+    <div class="flex justify-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 px-4 mb-8 w-full max-w-6xl">
+            <?php foreach ($events as $event): ?>
+                <div class="bg-[#FFFFFF] rounded-[20px] me-20 p-4 text-center w-full h- font-inter" style="box-shadow: 5px 6px 4px rgba(203, 152, 237, 1);">
+                    <img src="../assets/images/<?= htmlspecialchars($event['banner']) ?>?v=<?= time() ?>" alt="<?= htmlspecialchars($event['title']) ?> Banner" class="rounded-[8px] w-full h-[130px] object-cover mb-1">
+                    <h2 class="leading-none mt-3 text-[20px] font-inter text-lilac font-bold title"><?= htmlspecialchars($event['title']) ?></h2>
+                    <div class="space-x-4 mt-1 flex justify-center items-center">
+                        <button onclick="editEvent(<?= $event['event_id'] ?>)" class="mt-2 font-mont font-semibold bg-lilac text-white py-2 px-4 rounded-[10px] hover:bg-dlilac">Edit Event</button>
+                        <button onclick="showDeletePopup(<?= $event['event_id'] ?>)"><i class="fa-solid fa-trash text-lilac text-[28px] mt-2"></i></button>
+                    </div>
+                    <div class="flex justify-center">
+                        <button onclick="viewRegistrations(<?= $event['event_id'] ?>)" class="w-full mx-6 mt-2 font-mont font-semibold bg-pinky text-white py-2 px-4 rounded-[10px] hover:bg-lilac">View List</button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
-</div>
 
-<script>
-    let currentEventId; 
+    <div id="delete-popup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-10 rounded-lg text-center w-[450px]">
+            <h2 class="text-[24px] font-inter font-bold text-lilac mb-6">
+                Are You Sure You Want to<br>
+                Delete This Event?
+            </h2>
+            <div class="flex justify-center mb-4">
+                <img src="../assets/images/design/cancel.png" alt="Popup Image" class="w-48 h-auto mb-4" />
+            </div>
+            <div class="flex flex-col items-center">
+                <button id="confirm-delete-btn" class="bg-[#8B63DA] text-white px-10 py-2 font-bold rounded-full mb-2 font-montserrat" onclick="confirmDeleteEvent()">
+                    Confirm
+                </button>
+                <button class="bg-[#171950] text-white px-11 py-2 rounded-full font-montserrat font-bold" onclick="closeDeletePopup()">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-    function showDetails(eventId) {
-        currentEventId = eventId; 
+    <div id="success-popup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-10 rounded-lg text-center w-[450px]">
+            <h2 class="text-[24px] font-inter font-bold text-lilac mb-6">
+                This Event Has Been Successfully Deleted!
+            </h2>
+            <div class="flex justify-center mb-4">
+                <img src="../assets/images/design/cancel_conf.png" alt="Cancel" class="w-48 h-auto mb-4" />
+            </div>
+            <button class="bg-[#8B63DA] text-white px-10 py-2 rounded-full mb-2 font-montserrat font-bold" onclick="closeSuccessPopup()">Confirm</button>
+        </div>
+    </div>
 
-        fetch(`get_event_details.php?event_id=${eventId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text();
+    <script>
+        let eventIdToDelete;
+
+        function showDeletePopup(eventId) {
+            eventIdToDelete = eventId;
+            document.getElementById('delete-popup').classList.remove('hidden');
+        }
+
+        function closeDeletePopup() {
+            document.getElementById('delete-popup').classList.add('hidden');
+        }
+
+        function closeSuccessPopup() {
+            document.getElementById('success-popup').classList.add('hidden');
+            location.reload();
+        }
+
+        function confirmDeleteEvent() {
+            if (!eventIdToDelete) return alert("No event selected for deletion.");
+            
+            fetch(`delete_event.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `event_id=${eventIdToDelete}`
             })
-            .then(event => {
-                const data = event.split('|'); 
-                document.getElementById('popup-title').innerText = data[0]; 
-                document.getElementById('popup-image').src = '../assets/images/' + data[1] + '?v=' + new Date().getTime();
-                document.getElementById('popup-description').innerText = data[2]; 
-                document.getElementById('popup-date-time').innerText = `Date: ${data[3]}, Time: ${data[4]}`; 
-                document.getElementById('popup-location').innerText = `Location: ${data[5]}`;
-                document.getElementById('popup-registrations').innerText = `${data[6]} people registered`;
-                document.getElementById('event-popup').classList.remove('hidden'); // Show popup
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeDeletePopup();
+                    document.getElementById('success-popup').classList.remove('hidden');
+                } else {
+                    alert('Failed to delete event. Please try again.');
+                }
             })
             .catch(error => {
-                console.error('Error fetching event details:', error);
+                console.error('Error deleting event:', error);
+                alert('An error occurred while trying to delete the event.');
             });
-    }
-
-    function closePopup() {
-        document.getElementById('event-popup').classList.add('hidden'); // Hide popup
-    }
-
-    function editEvent() {
-        window.location.href = `edit_event.php?event_id=${currentEventId}`;
-    }
-
-    function confirmDeleteEvent() {
-        const confirmDelete = confirm('Are you sure you want to delete this event? This action cannot be undone.');
-        if (confirmDelete) {
-            deleteEvent();
         }
-    }
+    </script>
 
-    function deleteEvent() {
-        fetch(`delete_event.php?event_id=${currentEventId}`, {
-            method: 'POST',
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to delete event');
-            }
-            return response.text();
-        })
-        .then(result => {
-            alert('Event deleted successfully!');
-            location.reload();  
-        })
-        .catch(error => {
-            console.error('Error deleting event:', error);
-            alert('An error occurred while trying to delete the event.');
-        });
-    }
-</script>
-
-<!-- Include Tailwind CSS CDN -->
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</body>
+</html>

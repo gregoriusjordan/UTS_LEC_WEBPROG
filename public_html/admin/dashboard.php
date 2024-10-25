@@ -2,17 +2,16 @@
 session_start();
 require '../includes/db_connection.php';
 
-if ($_SESSION['role'] != 'user') {
+if ($_SESSION['role'] != 'admin') {
     header("Location: ../index.php");
     exit;
 }
 
-$stmt = $pdo->query("SELECT * FROM events");
+$stmt = $pdo->query("SELECT e.*, (SELECT COUNT(*) FROM registrations r WHERE r.event_id = e.event_id) AS total_registrations FROM events e");
 $events = $stmt->fetchAll();
 ?>
 
 <?php include '../includes/navbar.php'; ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -101,33 +100,16 @@ $events = $stmt->fetchAll();
             <p id="popup-time" class="text-sm text-gray-500 mb-1"></p>
             <p id="popup-location" class="text-sm text-gray-500 mb-4"></p>
 
-            <div class="space-y-1 flex flex-col items-center">
-                <button class="w-[180px] bg-pinky text-white py-2 px-4 rounded-[10px] font-inter font-semibold mb-1" onclick="registerEvent()">Register</button>
-                <button class="w-[180px] bg-lilac text-white py-2 px-4 rounded-[10px] hover:bg-dlilac font-inter font-semibold mb-2" onclick="closePopup()">Close</button>
+            <div class="popup-buttons space-y-1 flex flex-col items-center">
+                <button onclick="editEvent()" class="w-[180px] bg-pinky text-white py-2 px-4 rounded-[10px] font-inter font-semibold mb-1" onclick="registerEvent()">Edit Event</button>
+                <!-- <button onclick="confirmDeleteEvent()" class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">Delete Event</button> -->
+                <button class="close-btn w-[180px] bg-lilac text-white py-2 px-4 rounded-[10px] hover:bg-dlilac font-inter font-semibold mb-2" onclick="closePopup()">Close</button>
             </div>
         </div>
-    </div>
-
-
-    <div id="success-popup" class="fixed inset-0 bg-black backdrop-blur-sm bg-opacity-50 flex items-center justify-center hidden font-montserrat">
-        <div class="bg-white rounded-[20px] shadow-lg p-6 sm:p-8 text-center max-w-[90%] sm:max-w-md mx-auto animate-slideIn">
-            <h2 class="text-xl sm:text-2xl font-bold text-lilac mb-4">Registration Successful!</h2>
-            <img src="../assets/images/design/success.png" alt="Registration Success" class="mx-auto mb-4 w-[150px] sm:w-[200px]" />
-            <div class="flex flex-col space-y-2 sm:space-y-0 justify-center sm:space-x-4">
-                <div class="flex flex-col items-center mb-2 mt-3">
-                    <button onclick="hideSuccessPopup()" class="w-[150px] bg-lilac text-white py-2 px-4 rounded-[32px] hover:bg-dlilac font-bold mb-2 max-sm:mb-0">
-                        Confirm
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
     </div>
 
     <script>
         let currentEventId;
-
 
         function showDetails(eventId) {
             currentEventId = eventId;
@@ -152,19 +134,6 @@ $events = $stmt->fetchAll();
                     document.getElementById('popup-time').innerText = `Time: ${hours}:${minutes}`;
                     document.getElementById('popup-location').innerText = `Location: ${data[5]}`;
 
-                    const registrationStatus = data[6];
-                    const registerButton = document.querySelector("#event-popup button[onclick^='registerEvent']");
-
-                    if (registrationStatus === 'registered') {
-                        registerButton.innerText = 'Registered';
-                        registerButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-                        registerButton.disabled = true;
-                    } else {
-                        registerButton.innerText = 'Register';
-                        registerButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                        registerButton.disabled = false;
-                    }
-
                     document.getElementById('event-popup').classList.remove('hidden');
                 })
                 .catch(error => {
@@ -177,50 +146,39 @@ $events = $stmt->fetchAll();
             document.getElementById('event-popup').classList.add('hidden');
         }
 
-
-        function showSuccessPopup() {
-            document.getElementById('success-popup').classList.remove('hidden');
+        function editEvent() {
+            window.location.href = `edit_event.php?event_id=${currentEventId}`;
         }
 
-
-        function hideSuccessPopup() {
-            document.getElementById('success-popup').classList.add('hidden');
+        function confirmDeleteEvent() {
+            const confirmDelete = confirm('Are you sure you want to delete this event? This action cannot be undone.');
+            if (confirmDelete) {
+                deleteEvent();
+            }
         }
 
-
-        function registerEvent() {
-            const userId = <?= $_SESSION['user_id'] ?>;
-
-            fetch('register_event.php', {
+        function deleteEvent() {
+            fetch(`delete_event.php?event_id=${currentEventId}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `event_id=${currentEventId}&user_id=${userId}`
                 })
                 .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('You have successfully registered for the event!');
-                        closePopup();
-
-
-                        const countElement = document.getElementById(`participants-count-${currentEventId}`);
-                        const currentCount = parseInt(countElement.innerText.split('/')[0].replace('Participants: ', ''));
-                        const maxCount = parseInt(countElement.innerText.split('/')[1]);
-                        countElement.innerText = `Participants: ${currentCount + 1}/${maxCount}`;
-                    } else {
-                        alert(`Registration failed: ${data.message}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to delete event');
                     }
+                    return response.text();
+                })
+                .then(result => {
+                    alert('Event deleted successfully!');
+                    location.reload();
                 })
                 .catch(error => {
-                    console.error('Error registering for event:', error);
-                    alert('There was an error registering for the event. Please try again.');
+                    console.error('Error deleting event:', error);
+                    alert('An error occurred while trying to delete the event.');
                 });
         }
     </script>
+
+
 </body>
 
 </html>

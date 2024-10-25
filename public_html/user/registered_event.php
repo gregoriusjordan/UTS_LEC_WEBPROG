@@ -3,9 +3,9 @@ session_start();
 require '../includes/db_connection.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../view_events.php"); 
-    exit; 
-} 
+    header("Location: ../view_events.php");
+    exit;
+}
 
 $user_id = $_SESSION['user_id'];
 
@@ -36,12 +36,55 @@ if (isset($_POST['cancel_event_id'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registered Events - Eventory</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Montserrat:wght@600&family=Rethink+Sans:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bluey: '#3D41C1',
+                        lilac: '#8B63DA',
+                        pinky: '#CB98ED',
+                        dlilac: '#7A53C7'
+                    },
+                    fontFamily: {
+                        'mont': 'Montserrat',
+                        'inter': 'Inter'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': {
+                                opacity: '0'
+                            },
+                            '100%': {
+                                opacity: '1'
+                            }
+                        },
+                        slideIn: {
+                            '0%': {
+                                transform: 'translateY(100px)',
+                                opacity: '0'
+                            },
+                            '100%': {
+                                transform: 'translateY(0)',
+                                opacity: '1'
+                            }
+                        }
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 1s ease-out',
+                        slideIn: 'slideIn 0.5s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         :root {
             --dark-purple: #1E1B4B;
@@ -50,46 +93,8 @@ if (isset($_POST['cancel_event_id'])) {
             --pink: #FDF2F8;
         }
 
-        body {
-            background-color: var(--pink);
-            font-family: 'Rethink Sans', sans-serif;
-        }
-
-
-        .logo-text {
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-        }
-
-        .nav-link {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-        }
-
-        .page-title {
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            color: var(--medium-purple);
-        }
-
-        .event-card {
-            width: 300px;
-            height: 400px;
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 5px 7px 4px rgba(203, 152, 237, 1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .event-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 0.5rem;
-        }
-
-        .btn-details, .btn-cancel {
+        .btn-details,
+        .btn-cancel {
             background-color: var(--medium-purple);
             color: white;
             font-family: 'Montserrat', sans-serif;
@@ -131,6 +136,7 @@ if (isset($_POST['cancel_event_id'])) {
                 transform: translateY(-20px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -138,68 +144,140 @@ if (isset($_POST['cancel_event_id'])) {
         }
     </style>
 </head>
-<body>
 
-    <!-- Main Content -->
-    <div class="container mx-auto px-6 py-8">
-        <h1 class="page-title text-3xl text-center mb-8">Registered Events</h1>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <?php foreach ($events as $event): ?>
-            <div class="event-card">
-                <img src="../assets/images/event_banners/<?= htmlspecialchars($event['banner']) ?>" alt="<?= htmlspecialchars($event['title']) ?> Banner" 
-                     class="event-image mb-4 ">
-                <h3 class="font-montserrat font-semibold text-xl mb-4"><?= htmlspecialchars($event['title']) ?></h3>
-                <div class="flex flex-col space-y-3">
-                    <a href="get_event_details.php?id=<?= htmlspecialchars($event['event_id']) ?>" 
-                       class="btn-details text-center">Details</a>
-                    <button onclick="showCancelConfirmation(<?= htmlspecialchars($event['event_id']) ?>)"
-                            class="btn-cancel w-full">
-                        Cancel Registration
-                    </button>
-                </div>
+<body class="font-inter">
+
+    <div class="mx-auto px-6 py-8">
+        <?php if (count($events) === 0): ?>
+            <h1 class="text-[38px] font-bold text-center my-8 text-lilac font-inter hidden">Registered Events</h1>
+        <?php else: ?>
+            <h1 class="text-[38px] font-bold text-center my-8 text-lilac font-inter">Registered Events</h1>
+        <?php endif; ?>
+
+
+        <div class="flex justify-center">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 px-4 mb-8 w-full max-w-6xl">
+                <?php foreach ($events as $event): ?>
+                    <div class="bg-[#FFFFFF] rounded-[20px] me-20 p-4 text-center w-full font-inter" style="box-shadow: 5px 6px 4px rgba(203, 152, 237, 1);">
+                        <img src="../assets/images/<?= htmlspecialchars($event['banner']) ?>" alt="<?= htmlspecialchars($event['title']) ?> Banner"
+                            class="rounded-[8px] w-full h-[130px] object-cover mb-1">
+                        <h2 class="mt-2 text-[20px] font-inter text-lilac font-bold title"><?= htmlspecialchars($event['title']) ?></h2>
+                        <div class="space-y-2 mt-4">
+                            <button onclick="showDetails(<?= $event['event_id'] ?>)"
+                                class="w-[130px] bg-lilac text-white py-2 px-4 rounded-[10px] hover:bg-dlilac font-mont font-semibold">Details</>
+                                <button onclick="showCancelConfirmation(<?= htmlspecialchars($event['event_id']) ?>)"
+                                    class="w-[130px] bg-[#171950] text-white py-2 px-4 rounded-[10px] hover:bg-pinky font-mont font-semibold">Cancel</button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
         </div>
 
         <?php if (count($events) === 0): ?>
-            <div class="text-center text-gray-600 mt-8">
-                <p>No registered events found.</p>
+            <div class="flex flex-col items-center content-center">
+                <img class="max-w-[350px]" src="../assets/images/design/no_event.png">
+                <div class="text-center font-inter font-bold text-[32px] text-lilac mt-8">
+                    <p>No Events Registered.</p>
+                </div>
+                <div class="text-center font-mont font-semibold text-gray-500">
+                    <p>Start registering now!</p>
+                </div>
             </div>
         <?php endif; ?>
     </div>
 
-    <!-- Cancel Confirmation Dialog -->
-    <div id="cancelConfirmation" class="dialog-overlay">
-        <div class="dialog-content">
-            <h2 class="text-xl font-semibold text-[#8B5CF6] mb-4">Are You Sure You Want to Cancel Registration?</h2>
-            <div class="confirmation-image">
-                <!-- Add an image for confirmation -->
-            </div>
-            <div class="flex flex-col gap-3">
-                <button id="confirmCancel" class="button-primary">Confirm</button>
-                <button onclick="hideCancelDialog()" class="button-secondary">Cancel</button>
+    <div id="event-popup" class="fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm bg-opacity-60 hidden">
+        <div class="bg-white p-6 rounded-[20px] shadow-lg max-w-md w-full text-center animate-slideIn mx-4" style="box-shadow: 5px 6px 4px rgba(203, 152, 237, 1);">
+            <img id="popup-image" src="" alt="Event Image" class="w-full h-[200px] mx-auto rounded-[8px] mb-4 object-cover">
+            <h3 id="popup-title" class="text-[20px] font-inter text-lilac font-bold mb-2"></h3>
+            <p id="popup-description" class="text-gray-700 mb-4"></p>
+            <p id="popup-date" class="text-sm text-gray-500 mb-1"></p>
+            <p id="popup-time" class="text-sm text-gray-500 mb-1"></p>
+            <p id="popup-location" class="text-sm text-gray-500 mb-4"></p>
+
+            <div class="space-y-2 flex flex-col items-center">
+                <button class="w-[180px] bg-lilac text-white py-2 px-4 rounded-[10px] hover:bg-dlilac font-inter font-semibold mb-2" onclick="closePopup()">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Success Dialog -->
-    <div id="successDialog" class="dialog-overlay">
-        <div class="dialog-content">
-            <h2 class="text-xl font-semibold text-[#8B5CF6] mb-4">Registration Has Been Canceled!</h2>
-            <div class="success-image">
-                <!-- Add an image for success -->
-            </div>
-            <div class="flex flex-col gap-3">
-                <button onclick="hideSuccessDialog()" class="button-primary">Confirm</button>
-                <button onclick="goToDashboard()" class="button-secondary">Go to Dashboard</button>
+
+    <div id="cancelConfirmation" class="fixed inset-0 bg-black backdrop-blur-sm bg-opacity-50 flex items-center justify-center hidden font-montserrat">
+        <div class="bg-white rounded-[20px] shadow-lg p-6 sm:p-8 text-center max-w-[90%] sm:max-w-md mx-auto animate-slideIn">
+            <h2 class="text-xl sm:text-2xl font-bold text-lilac mb-4">Are You Sure You Want to Cancel Registration?</h2>
+            <img src="../assets/images/design/cancel.png" alt="Cancel Confirmation" class="mx-auto mb-4 w-[150px] sm:w-[200px]" />
+            <div class="flex flex-col space-y-2 sm:space-y-0 justify-center sm:space-x-4">
+                <div class="flex flex-col items-center mb-2 mt-3">
+                    <button id="confirmCancel" class="w-[150px] bg-lilac text-white py-2 px-4 rounded-[32px] hover:bg-dlilac font-bold mb-2">
+                        Confirm
+                    </button>
+                    <button onclick="hideCancelDialog()" class="w-[150px] sm:w-[150px] text-white py-2 px-4 rounded-[32px] font-bold bg-[#171950] text-white hover:bg-pinky">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+
+    <div id="successDialog" class="fixed inset-0 bg-black backdrop-blur-sm bg-opacity-50 flex items-center justify-center hidden font-montserrat">
+        <div class="bg-white rounded-[20px] shadow-lg p-6 sm:p-8 text-center max-w-[90%] sm:max-w-md mx-auto animate-slideIn">
+            <h2 class="text-xl sm:text-2xl font-bold text-lilac mb-4">Registration Has Been Canceled!</h2>
+            <img src="../assets/images/design/cancel_conf.png" alt="Cancel Confirmation" class="mx-auto mb-4 w-[150px] sm:w-[200px]" />
+            <div class="flex flex-col space-y-2 sm:space-y-0 justify-center sm:space-x-4">
+                <div class="flex flex-col items-center mb-2 mt-3">
+                    <button onclick="hideSuccessDialog()" class="w-[150px] bg-lilac text-white py-2 px-4 rounded-[32px] hover:bg-dlilac font-bold mb-2">
+                        Confirm
+                    </button>
+                    <button onclick="goToDashboard()" class="w-[180px] max-sm:w-[150px] text-white py-2 px-4 rounded-[32px] font-bold  bg-[#171950] text-white hover:bg-pinky">
+                        Go to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         let currentEventId = null;
 
+        function showDetails(eventId) {
+            currentEventId = eventId;
+
+            fetch(`get_event_details.php?event_id=${eventId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(event => {
+                    const data = event.split('|');
+                    const timeParts = data[4].split(':');
+                    const hours = timeParts[0];
+                    const minutes = timeParts[1];
+
+                    // Updating the popup fields
+                    document.getElementById('popup-title').innerText = data[0]; // Title
+                    document.getElementById('popup-image').src = '../assets/images/' + data[1] + '?v=' + new Date().getTime(); // Image
+                    document.getElementById('popup-description').innerText = data[2]; // Description
+                    document.getElementById('popup-date').innerText = `Date: ${data[3]}`; // Date
+                    document.getElementById('popup-time').innerText = `Time: ${hours}:${minutes}`; // Time
+                    document.getElementById('popup-location').innerText = `Location: ${data[5]}`; // Location
+
+                    document.getElementById('event-popup').classList.remove('hidden'); // Show the popup
+                })
+                .catch(error => {
+                    console.error('Error fetching event details:', error);
+                });
+        }
+
+        // Function to close the details popup
+        function closePopup() {
+            document.getElementById('event-popup').classList.add('hidden');
+        }
+
+        // Function to cancel the event registration
         function showCancelConfirmation(eventId) {
             currentEventId = eventId;
             document.getElementById('cancelConfirmation').classList.add('dialog-active');
@@ -219,10 +297,7 @@ if (isset($_POST['cancel_event_id'])) {
             document.getElementById('successDialog').classList.add('dialog-active');
         }
 
-        function goToDashboard() {
-            window.location.href = 'dashboard.php';
-        }
-
+        // Function to confirm event cancellation
         document.getElementById('confirmCancel').addEventListener('click', async function() {
             if (!currentEventId) return;
 
@@ -236,7 +311,7 @@ if (isset($_POST['cancel_event_id'])) {
                 });
 
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showSuccessDialog();
                 }
@@ -244,6 +319,13 @@ if (isset($_POST['cancel_event_id'])) {
                 console.error('Error:', error);
             }
         });
+
+        // Close popup function for the event details
+        function closePopup() {
+            document.getElementById('event-popup').classList.add('hidden');
+        }
     </script>
-</body> 
+
+</body>
+
 </html>

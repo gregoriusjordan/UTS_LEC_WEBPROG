@@ -2,13 +2,14 @@
 session_start();
 require '../includes/db_connection.php';
 
-if ($_SESSION['role'] != 'admin') {
-    header("Location: ../index");
-    exit;
+if ($_SESSION['role'] != 'admin') { 
+    header("Location: ../index"); 
+    exit; 
 }
 
 $uploadError = '';
 $allowed_extensions = ['jpg', 'jpeg', 'png', 'svg', 'webp', 'bmp', 'gif'];
+$showPopup = false;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $title = $_POST['title'];
@@ -60,24 +61,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'image' => $imageName,
             'banner' => $bannerName
         ]);
-        header("Location: manage_events.php");
+        $showPopup = true;
     }
 }
 ?>
-<?php if (!empty($uploadError)): ?>
-    <p style="color: red;"><?= $uploadError ?></p>
-<?php endif; ?>
-<?php include '../includes/navbar.php'; ?>
+
+<?php include '../includes/navbar.php'?>
+
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Event</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .blur {
+            filter: blur(2px);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bluey: '#3D41C1',
+                        lilac: '#8B63DA',
+                        pinky: '#CB98ED',
+                        dlilac: '#7A53C7'
+                    },
+                    fontFamily: {
+                        'mont': 'Montserrat',
+                        'inter': 'Inter'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': {
+                                opacity: '0'
+                            },
+                            '100%': {
+                                opacity: '1'
+                            }
+                        },
+                        slideIn: {
+                            '0%': {
+                                transform: 'translateY(100px)',
+                                opacity: '0'
+                            },
+                            '100%': {
+                                transform: 'translateY(0)',
+                                opacity: '1'
+                            }
+                        }
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 1s ease-out',
+                        slideIn: 'slideIn 0.4s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        function updateFileName(inputId, placeholderId) {
+            const fileInput = document.getElementById(inputId);
+            const filePlaceholder = document.getElementById(placeholderId);
+            filePlaceholder.value = fileInput.files.length > 0 ? fileInput.files[0].name : 'Choose File';
+        }
+    </script>
 </head>
+
 <body class="bg-gray-100">
-    <div class="container mx-auto p-8 max-w-2xl">
-        <h1 class="text-3xl font-bold mb-6 text-center text-indigo-600">Add New Event</h1>
+    <div class="container mx-auto p-8 max-w-2xl <?= $showPopup ? 'blur' : '' ?>">
+        <div class="mt-2 text-center">
+            <img src="../assets/images/design/add.png" alt="Event Image" class="mt-2 rounded-md max-w-full h-auto w-[400px] mx-auto mb-4">
+        </div>
+        <h1 class="text-3xl font-bold mb-6 text-center text-lilac">Make a New Event</h1>
 
         <?php if (!empty($uploadError)): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -85,54 +145,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         <?php endif; ?>
 
-        <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md">
+        <form method="POST" enctype="multipart/form-data">
             <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">Event Title:</label>
-                <input type="text" name="title" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-gray-700 font-bold mb-2 text-lilac">Event Name:</label>
+                <input type="text" name="title" required placeholder="Enter the name of your event" class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-
             <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">Description:</label>
-                <textarea name="description" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-            </div>
-
-            <div class="mb-4 grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">Event Date:</label>
-                    <input type="date" name="event_date" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">Event Time:</label>
-                    <input type="time" name="event_time" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
+                <label class="block text-gray-700 font-bold mb-2 text-lilac">Event Description:</label>
+                <input type="text" name="description" required placeholder="Enter the description of your event" class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">Location:</label>
-                <input type="text" name="location" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-gray-700 font-bold mb-2 text-lilac">Date & Time:</label>
+                <input type="date" name="event_date" required class="mt-4 mb-4 w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="time" name="event_time" required class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">Max Participants:</label>
-                <input type="number" name="max_participants" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-gray-700 font-bold mb-2 text-lilac">Event Location:</label>
+                <input type="text" name="location" required placeholder="Enter the location of your event" class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">Event Image (Optional):</label>
-                <input type="file" name="event_image" accept=".jpg,.jpeg,.png,.svg,.webp,.bmp,.gif" class="block w-full text-gray-700 py-2">
+                <label class="block text-gray-700 font-bold mb-2 text-lilac">Capacity:</label>
+                <input type="number" name="max_participants" required placeholder="Enter the maximum participants for your event" class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">Event Banner (Optional):</label>
-                <input type="file" name="event_banner" accept=".jpg,.jpeg,.png,.svg,.webp,.bmp,.gif" class="block w-full text-gray-700 py-2">
+            <div class="mb-4 relative">
+                <label class="block text-gray-700 font-bold mb-2 text-lilac">Event Image:</label>
+                <input type="file" id="eventImageInput" name="event_image" accept=".jpg,.jpeg,.png,.svg,.webp,.bmp,.gif"
+                    class="opacity-0 absolute inset-0 z-50 cursor-pointer w-full h-full"
+                    onchange="updateFileName('eventImageInput', 'eventImagePlaceholder')">
+
+                <input type="text" id="eventImagePlaceholder" placeholder="Choose File"
+                    class="w-full text-gray-700 px-4 py-2 rounded-full bg-white cursor-pointer" readonly>
+
+                <button type="button" class="absolute right-2 top-1/2 transform -translate-y bg-lilac text-white font-bold px-3 py-1 rounded-full">Browse</button>
             </div>
 
-            <div class="text-center">
-                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    Add Event
+            <div class="mb-4 relative">
+                <label class="block text-gray-700 font-bold mb-2 text-lilac">Event Banner:</label>
+                <input type="file" id="eventBannerInput" name="event_banner" accept=".jpg,.jpeg,.png,.svg,.webp,.bmp,.gif"
+                    class="opacity-0 absolute inset-0 z-50 cursor-pointer w-full h-full"
+                    onchange="updateFileName('eventBannerInput', 'eventBannerPlaceholder')">
+
+                <input type="text" id="eventBannerPlaceholder" placeholder="Choose File"
+                    class="w-full text-gray-700 px-4 py-2 rounded-full bg-white cursor-pointer" readonly>
+
+                <button type="button" class="absolute right-2 top-1/2 transform -translate-y bg-lilac text-white font-bold px-3 py-1 rounded-full">Browse</button>
+            </div>
+
+            <div class="text-right">
+                <button type="submit" class="mt-6 bg-lilac text-white font-bold px-4 py-2 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full">
+                    Create Event
                 </button>
             </div>
         </form>
     </div>
-</body>
+
+    <?php if ($showPopup): ?>
+        <div class="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <h2 class="text-2xl text-lilac font-bold mb-4">You Just Created a New Event!</h2>
+                <div class="mt-4 text-center">
+                    <img src="../assets/images/design/cancel_conf.png" alt="Event Image" class="mt-2 rounded-md max-w-full h-auto w-60 h-16 mx-auto mb-4">
+                </div>
+                <a href="add_event.php" class="bg-pinky text-white font-bold px-4 py-2 rounded-full mb-4 inline-block">
+                    Confirm
+                </a>
+                <br>
+                <a href="dashboard.php" class="bg-dlilac text-white font-bold px-4 py-2 rounded-full inline-block">
+                    Go to Dashboard
+                </a>
+            </div>
+        </div>
+    <?php endif; ?> 
+</body> 
+ 
 </html>
